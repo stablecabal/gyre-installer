@@ -1,0 +1,6 @@
+[submodule "stable-diffusion-grpcserver"]
+	path = stable-diffusion-grpcserver
+	url = https://github.com/hafriedlander/stable-diffusion-grpcserver.git
+[submodule "idea2art"]
+	path = idea2art
+	url = https://github.com/hafriedlander/idea2art.git
