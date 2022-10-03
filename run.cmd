@@ -1,3 +1,3 @@
 @echo off
-.\env\micromamba.exe -r env -n sd-grpc-server run python ./scripts/run.py
+start .\env\micromamba.exe -r env -n sd-grpc-server run python ./scripts/run.py
 
