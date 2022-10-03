@@ -6,11 +6,16 @@ This is a combined client and server for IDEA2.ART, a user-friendly interface to
 
 ## Windows
 
-Run install_or_update.cmd at least once (first to install, and then whenever you want to update to the latest version)
 
-Edit the config file that is created and set the first value to contain your Huggingface token
-
-Run run.cmd to start
+- Download the latest "Source code (zip)" package from https://github.com/hafriedlander/idea2art-aio/releases/ (under "Assets")
+- Unpack the zip somewhere
+- Run install_or_update.cmd at least once (first to install, and then whenever you want to update to the latest version)
+- Edit the config file that is created and set the first value to contain your Huggingface token
+  - If you don't have a huggingface token yet
+    - Register for a HuggingFace account at https://huggingface.co/join
+    - Follow the instructions to access the repository at https://huggingface.co/CompVis/stable-diffusion-v1-4
+    - Create a token at https://huggingface.co/settings/tokens
+- Run run.cmd to start
 
 Visit http://127.0.0.1:5000/ in your browser
 
