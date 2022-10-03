@@ -21,7 +21,7 @@ def main():
     
     # Install the server dependencies
 
-    subprocess.run(("flit","install","--pth-file"), cwd=os.path.join(base, "stable-diffusion-grpcserver"))
+    subprocess.run(("python", "-m", "flit", "install", "--pth-file"), cwd=os.path.join(base, "stable-diffusion-grpcserver"))
 
 if __name__ == "__main__":
     main()

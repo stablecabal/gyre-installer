@@ -12,10 +12,8 @@ def main():
 
     # Run server
 
-    server.main({
-        "http_root": path.join(base, "idea2art"),
-        "http_port": 8000
-    })
+    os.environ["SD_HTTP_FILE_ROOT"] = path.join(base, "idea2art")
+    server.main()
     
 if __name__ == "__main__":
     main()
