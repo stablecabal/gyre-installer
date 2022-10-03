@@ -1,5 +1,5 @@
 from os import path
-import subprocess, os, shutil
+import subprocess, os, shutil, sys
 from dotenv import load_dotenv
 from sdgrpcserver import server
 
@@ -9,6 +9,11 @@ def main():
     # Load dotenv into environment
 
     load_dotenv(path.join(base, "config"))
+    
+    hfToken = os.environ.get('HF_API_TOKEN', '')
+    if not hfToken or hfToken == '{your huggingface token}':
+        print("You need to register an account on HuggingFace, create an API token, and save it into the 'config' file in this directory")
+        sys.exit(-1)
 
     # Run server
 
