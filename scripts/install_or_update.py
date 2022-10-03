@@ -13,7 +13,7 @@ def main():
 
     if not path.exists(path.join(base, ".git")):
         subprocess.run(("git", "init"), cwd=base)
-        subprocess.run(("git", "remote", "add", "origin", "../idea2art-aio/"), cwd=base)
+        subprocess.run(("git", "remote", "add", "origin", "https://github.com/hafriedlander/idea2art-aio.git"), cwd=base)
 
     subprocess.run(("git", "fetch"), cwd=base)
     subprocess.run(("git", "reset", "--hard", "origin/main"), cwd=base)
