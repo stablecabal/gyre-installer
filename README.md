@@ -10,7 +10,7 @@ This is a combined client and server for IDEA2.ART, a user-friendly interface to
 
 - Download the latest "Source code (zip)" package from https://github.com/hafriedlander/idea2art-aio/releases/ (under "Assets")
 - Unpack the zip somewhere
-- Run install_or_update.cmd at least once (first to install, and then whenever you want to update to the latest version)
+- Run install_or_update.exe at least once (first to install, and then whenever you want to update to the latest version)
 - Edit the config file that is created and set the first value to contain your Huggingface token
   - If you don't have a huggingface token yet
     - Register for a HuggingFace account at https://huggingface.co/join
