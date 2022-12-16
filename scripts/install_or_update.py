@@ -46,5 +46,9 @@ def main():
     os.environ["PIP_EXTRA_INDEX_URL"]="https://download.pytorch.org/whl/cu116"
     subprocess.run(("python", "-m", "flit", "install", "--pth-file"), cwd=os.path.join(base, "stable-diffusion-grpcserver"))
 
+    # Install xformers
+    xformers_url = open(path.join(base, ".xformers_url"), "r").read().strip()
+    subprocess.run(("pip", "install", xformers_url), cwd=base)
+
 if __name__ == "__main__":
     main()
