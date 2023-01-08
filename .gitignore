@@ -1,2 +1,4 @@
 config
 env
+.dart_tool
+gyreconfig

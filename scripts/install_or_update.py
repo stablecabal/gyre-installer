@@ -44,7 +44,7 @@ def main():
     # Install the server dependencies
 
     os.environ["PIP_EXTRA_INDEX_URL"]="https://download.pytorch.org/whl/cu116"
-    subprocess.run(("python", "-m", "flit", "install", "--pth-file"), cwd=os.path.join(base, "stable-diffusion-grpcserver"))
+    subprocess.run(("python", "-m", "flit", "install", "--pth-file"), cwd=os.path.join(base, "gyre"))
 
     # Install xformers
     xformers_url = open(path.join(base, ".xformers_url"), "r").read().strip()

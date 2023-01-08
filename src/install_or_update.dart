@@ -40,7 +40,7 @@ void main() async {
 
     print("Using local micromamba");
 
-    base_args = ["-r", env, "-n", "sd-grpc-server"];
+    base_args = ["-r", env, "-n", "gyre"];
 
     final testResult = Process.runSync(sdconda, ["run", ...base_args, "echo"]);
 
