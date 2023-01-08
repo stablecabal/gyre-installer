@@ -2,7 +2,7 @@ from os import path
 import os, subprocess, os, shutil, re
 
 def main():
-    base=path.dirname(path.dirname(__file__))
+    base=path.dirname(path.dirname(path.abspath(__file__)))
 
     # Create config if it doesn't exist
     
@@ -11,7 +11,7 @@ def main():
 
     # Read the config
 
-    repo = os.environ.get("AIO_REPO", "https://github.com/hafriedlander/idea2art-aio.git")
+    repo = os.environ.get("AIO_REPO", "https://github.com/stablecabal/gyre-installer.git")
     branch = os.environ.get("AIO_BRANCH", "main") 
 
     # We can't rely on dotenv existing yet, stdlib only

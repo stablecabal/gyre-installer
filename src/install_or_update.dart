@@ -31,11 +31,12 @@ void main() async {
   }
   else {
     final env = p.join(root, 'env');
-    sdconda = p.join(env, "micromamba.exe");
+    final micromamba = Platform.isLinux ? "micromamba-Linux" : "micromamba.exe" ;
+    sdconda = p.join(env, micromamba);
 
     if (!File(sdconda).existsSync()) {
       Directory(env).createSync();
-      File(p.join(root, "micromamba", "micromamba.exe")).copySync(sdconda);
+      File(p.join(root, "micromamba", micromamba)).copySync(sdconda);
     }
 
     print("Using local micromamba");
@@ -69,10 +70,19 @@ void main() async {
 
   final result = await process.exitCode;
   
-  File(p.join(root, "run.cmd")).writeAsStringSync("""
+  if (Platform.isLinux) {
+    File(p.join(root, "run.sh")).writeAsStringSync("""
+#!/bin/bash
+${sdconda} run ${base_args.join(" ")} python ${p.join(root, 'scripts', 'run.py')}
+""");
+  }
+  else {
+    File(p.join(root, "run.cmd")).writeAsStringSync("""
 @echo off
 start ${sdconda} run ${base_args.join(" ")} python ${p.join(root, 'scripts', 'run.py')}
-  """);
+""");
+  }
+
 
   print("Done");
 }
