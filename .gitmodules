@@ -1,6 +1,3 @@
-[submodule "idea2art"]
-	path = idea2art
-	url = https://github.com/hafriedlander/idea2art.git
 [submodule "gyre"]
 	path = gyre
 	url = https://github.com/stablecabal/gyre
