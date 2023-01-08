@@ -3,7 +3,12 @@ import 'dart:io';
 
 void main() async {
   final script = Platform.script.toFilePath();
-  final root = p.dirname(script);
+
+  var root = p.dirname(script);
+  while (!File(p.join(root, "config.dist")).existsSync()) {
+    root = p.dirname(root);
+  }
+
   final conda = Platform.environment["CONDA_EXE"];
 
   var sdconda = "";
@@ -36,14 +41,14 @@ void main() async {
 
     if (!File(sdconda).existsSync()) {
       Directory(env).createSync();
-      File(p.join(root, "micromamba", micromamba)).copySync(sdconda);
+      File(p.join(root, "bin", micromamba)).copySync(sdconda);
     }
 
     print("Using local micromamba");
 
     base_args = ["-r", env, "-n", "gyre"];
 
-    final testResult = Process.runSync(sdconda, ["run", ...base_args, "echo"]);
+    final testResult = Process.runSync(sdconda, ["list", ...base_args]);
 
     if (testResult.exitCode == 0) {
       print("Environment exists. Updating.");

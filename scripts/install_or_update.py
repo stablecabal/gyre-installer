@@ -1,5 +1,5 @@
 from os import path
-import os, subprocess, os, shutil, re
+import os, subprocess, shutil, re, sys
 
 def main():
     base=path.dirname(path.dirname(path.abspath(__file__)))
@@ -47,8 +47,9 @@ def main():
     subprocess.run(("python", "-m", "flit", "install", "--pth-file"), cwd=os.path.join(base, "gyre"))
 
     # Install xformers
-    xformers_url = open(path.join(base, ".xformers_url"), "r").read().strip()
-    subprocess.run(("pip", "install", xformers_url), cwd=base)
+    if sys.platform.startswith("win"):
+        xformers_url = open(path.join(base, ".xformers_url"), "r").read().strip()
+        subprocess.run(("pip", "install", xformers_url), cwd=base)
 
 if __name__ == "__main__":
     main()
