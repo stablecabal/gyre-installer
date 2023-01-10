@@ -12,7 +12,7 @@ def main():
     # Read the config
 
     repo = os.environ.get("AIO_REPO", "https://github.com/stablecabal/gyre-installer.git")
-    branch = os.environ.get("AIO_BRANCH", "main") 
+    branch = os.environ.get("AIO_BRANCH", "idea2art-main")
 
     # We can't rely on dotenv existing yet, stdlib only
     with open(path.join(base, "config"), "r") as config_file:
