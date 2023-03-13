@@ -130,6 +130,7 @@ def main():
     # Install the server dependencies
 
     os.environ["PIP_EXTRA_INDEX_URL"]="https://download.pytorch.org/whl/cu116"
+    os.environ["PIP_FIND_LINKS"]="https://download.openmmlab.com/mmcv/dist/cu116/torch1.12/index.html"
     subprocess.run(("python", "-m", "flit", "install", "--pth-file"), cwd=os.path.join(base, "gyre"))
 
     # Install xformers
