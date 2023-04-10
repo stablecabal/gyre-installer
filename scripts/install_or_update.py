@@ -145,7 +145,7 @@ def main():
             print("Installer updated, but not restarting to avoid infinite loop. Please manually re-run.")
             return
         
-        print("Installer updated. Restarting.\n\n")
+        print("Installer updated. Restarting.\n\n", flush=True)
         subprocess.run(("python", os.path.realpath(__file__), "dont_restart"), cwd=base)
         return
 
