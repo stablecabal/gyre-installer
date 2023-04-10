@@ -1,3 +1,4 @@
+import hashlib
 from os import path
 import os, subprocess, shutil, re, sys, time
 
@@ -70,6 +71,15 @@ def check_environment(hf_cache_home):
 
     return has_warning
 
+def sha256sum(filename):
+    h = hashlib.sha256()
+    b = bytearray(128 * 1024)
+    mv = memoryview(b)
+    with open(filename, "rb", buffering=0) as f:
+        while n := f.readinto(mv):
+            h.update(mv[:n])
+    return h.hexdigest()
+
 
 def main():
     base=path.dirname(path.dirname(path.abspath(__file__)))
@@ -123,10 +133,18 @@ def main():
     elif remote_url != repo:
         subprocess.run(("git", "remote", "set-url", "origin", repo), cwd=base)
 
+    existing_selfhash = sha256sum(__file__)
+
     subprocess.run(("git", "fetch"), cwd=base)
     subprocess.run(("git", "reset", "--hard", "origin/"+branch), cwd=base)
     subprocess.run(("git", "submodule", "update", "--init", "--recursive"), cwd=base)
-    
+
+    new_selfhash = sha256sum(__file__)
+    if existing_selfhash != new_selfhash:
+        print("Installer updated. Restarting.\n\n")
+        subprocess.run(("python", os.path.realpath(__file__)), cwd=base)
+        return
+
     # Install the server dependencies
 
     os.environ["PIP_EXTRA_INDEX_URL"]="https://download.pytorch.org/whl/cu116"
