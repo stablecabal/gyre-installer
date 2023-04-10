@@ -141,8 +141,12 @@ def main():
 
     new_selfhash = sha256sum(__file__)
     if existing_selfhash != new_selfhash:
+        if len(sys.argv) > 1 and sys.argv[1] == "dont_restart":
+            print("Installer updated, but not restarting to avoid infinite loop. Please manually re-run.")
+            return
+        
         print("Installer updated. Restarting.\n\n")
-        subprocess.run(("python", os.path.realpath(__file__)), cwd=base)
+        subprocess.run(("python", os.path.realpath(__file__), "dont_restart"), cwd=base)
         return
 
     # Install the server dependencies
