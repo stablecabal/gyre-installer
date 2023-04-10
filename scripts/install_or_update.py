@@ -1,5 +1,16 @@
+import hashlib
 from os import path
 import os, subprocess, shutil, re, sys
+
+def sha256sum(filename):
+    h = hashlib.sha256()
+    b = bytearray(128 * 1024)
+    mv = memoryview(b)
+    with open(filename, "rb", buffering=0) as f:
+        while n := f.readinto(mv):
+            h.update(mv[:n])
+    return h.hexdigest()
+
 
 def main():
     base=path.dirname(path.dirname(path.abspath(__file__)))
@@ -17,7 +28,7 @@ def main():
     # We can't rely on dotenv existing yet, stdlib only
     with open(path.join(base, "config"), "r") as config_file:
         for line in config_file:
-            repo_match = re.match(r'\s*AIO_REPO=(\S+)', line)
+            repo_match = re.match(r'\s*AIO_REPO\s*=\s*(\S+)', line)
             branch_match = re.match(r'\s*AIO_BRANCH\s*=\s*(\S+)', line)
 
             if repo_match: repo=repo_match.group(1)
@@ -37,10 +48,22 @@ def main():
     elif remote_url != repo:
         subprocess.run(("git", "remote", "set-url", "origin", repo), cwd=base)
 
+    existing_selfhash = sha256sum(__file__)
+
     subprocess.run(("git", "fetch"), cwd=base)
     subprocess.run(("git", "reset", "--hard", "origin/"+branch), cwd=base)
     subprocess.run(("git", "submodule", "update", "--init", "--recursive"), cwd=base)
-    
+
+    new_selfhash = sha256sum(__file__)
+    if existing_selfhash != new_selfhash:
+        if len(sys.argv) > 1 and sys.argv[1] == "dont_restart":
+            print("Installer updated, but not restarting to avoid infinite loop. Please manually re-run.")
+            return
+        
+        print("Installer updated. Restarting.\n\n", flush=True)
+        subprocess.run(("python", os.path.realpath(__file__), "dont_restart"), cwd=base)
+        return
+
     # Install the server dependencies
 
     os.environ["PIP_EXTRA_INDEX_URL"]="https://download.pytorch.org/whl/cu116"
