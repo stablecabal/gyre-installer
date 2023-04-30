@@ -1,3 +1,6 @@
 [submodule "gyre"]
 	path = gyre
 	url = https://github.com/stablecabal/gyre
+[submodule "aistudio"]
+	path = aistudio
+	url = https://github.com/flyingdogsoftware/aistudio.git

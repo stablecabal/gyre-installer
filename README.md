@@ -35,5 +35,6 @@ Unfortunately not currently supported.
 
 # License
 
-Gyre and the cde specific to this installer is licensed under the Apache-2.0 license
+Gyre server and the code specific to this installer is licensed under the Apache-2.0 license
 Idea2.art and any bundle that includes it is licensed under the Affero GPL 3.0 - https://www.gnu.org/licenses/agpl-3.0.en.html
+The flying dog web interface is licensed under (license to come)

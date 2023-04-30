@@ -1,3 +1,6 @@
+AIO_BRANCH=bundle
+SD_HTTP_FILE_ROOT=./aistudio/dist
+SD_HTTP_PROXY_1=flyingdog:www.flyingdog.de
 SD_NSFW_BEHAVIOUR=flag
 SD_VRAM_OPTIMISATION_LEVEL=3
 SD_HTTP_PORT=5000
