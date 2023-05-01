@@ -74,6 +74,9 @@ void main() async {
   process.stderr.pipe(stderr);
 
   final result = await process.exitCode;
+  if (result != 0) {
+    throw new Error();
+  }
   
   if (Platform.isLinux) {
     File(p.join(root, "run.sh")).writeAsStringSync("""
@@ -84,7 +87,7 @@ ${sdconda} run ${base_args.join(" ")} python ${p.join(root, 'scripts', 'run.py')
   else {
     File(p.join(root, "run.cmd")).writeAsStringSync("""
 @echo off
-start ${sdconda} run ${base_args.join(" ")} python ${p.join(root, 'scripts', 'run.py')}
+${sdconda} run ${base_args.join(" ")} python ${p.join(root, 'scripts', 'run.py')} || pause
 """);
   }
 
