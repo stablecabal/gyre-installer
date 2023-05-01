@@ -9,26 +9,25 @@ from lib import pynvml
 
 GB = 1024 * 1024 * 1024
 
+has_warning = False
+
+def error(str):
+    print(Fore.RED, "\n----Error--------------------------")
+    print(str)
+    print("-----------------------------------", Style.RESET_ALL)
+    sys.exit(-1)
+
+def warning(str):
+    global has_warning
+    has_warning = True
+    print(Fore.YELLOW, "\n----Warning--------------------------")
+    print(str)
+    print("-------------------------------------", Style.RESET_ALL)
+
 def check_environment(hf_cache_home):
     pynvml.nvmlInit()
 
-    has_warning = False
-
-    def error(str):
-        print(Fore.RED, "\n----Error--------------------------")
-        print(str)
-        print("-----------------------------------", Style.RESET_ALL)
-        sys.exit(-1)
-
-    def warning(str):
-        nonlocal has_warning
-        has_warning = True
-        print(Fore.YELLOW, "\n----Warning--------------------------")
-        print(str)
-        print("-------------------------------------", Style.RESET_ALL)
-
     try:
-
         # Find a pynvml card
 
         count = 0
@@ -68,8 +67,6 @@ def check_environment(hf_cache_home):
 
     finally:
         pynvml.nvmlShutdown()
-
-    return has_warning
 
 def sha256sum(filename):
     h = hashlib.sha256()
@@ -114,33 +111,48 @@ def main():
             if home_match: hf_cache_home=os.path.abspath(home_match.group(1))
 
     # Run a basic environment check before doing anything
-    if check_environment(hf_cache_home):
+    check_environment(hf_cache_home)
+    if has_warning:
         print("(Continuing in 5 seconds....)", flush=True)
         time.sleep(5)
+
+    # Wrapper around subprocess.run that checks returncode and aborts if non-zero
+
+    def run(*args, **kwargs):
+        default_kwargs = {"cwd": base}
+        default_kwargs.update(kwargs)
+
+        result = subprocess.run(*args, **default_kwargs)
+        if result.returncode != 0:
+            error("Whoops - something went wrong. Aborting.")
+
 
     # Update this repo, and any submodules
 
     if not path.exists(path.join(base, ".git")):
-        subprocess.run(("git", "init"), cwd=base)
+        run(("git", "init"))
+        print("Installing...")
+    else:
+        print("Updating...")
 
     result = subprocess.run(("git", "remote", "get-url", "origin"), cwd=base, capture_output=True, text=True)
     has_remote = result.returncode == 0
     remote_url = result.stdout.strip()
 
     if not has_remote:
-        subprocess.run(("git", "remote", "add", "origin", repo), cwd=base)
+        run(("git", "remote", "add", "origin", repo))
     elif remote_url != repo:
-        subprocess.run(("git", "remote", "set-url", "origin", repo), cwd=base)
+        run(("git", "remote", "set-url", "origin", repo))
 
     existing_selfhash = sha256sum(__file__)
 
-    subprocess.run(("git", "fetch"), cwd=base)
-    subprocess.run(("git", "reset", "--hard", "origin/"+branch), cwd=base)
-    subprocess.run(("git", "submodule", "update", "--init", "--recursive"), cwd=base)
+    run(("git", "fetch"))
+    run(("git", "reset", "--hard", "origin/"+branch))
+    run(("git", "submodule", "update", "--init", "--recursive", "--force"))
 
     new_selfhash = sha256sum(__file__)
     if existing_selfhash != new_selfhash:
-        if len(sys.argv) > 1 and sys.argv[1] == "dont_restart":
+        if "dont_restart" in sys.argv:
             print("Installer updated, but not restarting to avoid infinite loop. Please manually re-run.")
             return
         
@@ -152,12 +164,12 @@ def main():
 
     os.environ["PIP_EXTRA_INDEX_URL"]="https://download.pytorch.org/whl/cu116"
     os.environ["PIP_FIND_LINKS"]="https://download.openmmlab.com/mmcv/dist/cu116/torch1.12/index.html"
-    subprocess.run(("python", "-m", "flit", "install", "--pth-file"), cwd=os.path.join(base, "gyre"))
+    run(("python", "-m", "flit", "install", "--pth-file"), cwd=os.path.join(base, "gyre"))
 
     # Install xformers
     if sys.platform.startswith("win"):
         xformers_url = open(path.join(base, ".xformers_url"), "r").read().strip()
-        subprocess.run(("pip", "install", xformers_url), cwd=base)
+        run(("pip", "install", xformers_url))
 
 if __name__ == "__main__":
     main()
