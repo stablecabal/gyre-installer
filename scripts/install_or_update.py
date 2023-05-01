@@ -131,9 +131,6 @@ def main():
 
     if not path.exists(path.join(base, ".git")):
         run(("git", "init"))
-        print("Installing...")
-    else:
-        print("Updating...")
 
     result = subprocess.run(("git", "remote", "get-url", "origin"), cwd=base, capture_output=True, text=True)
     has_remote = result.returncode == 0
