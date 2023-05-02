@@ -70,8 +70,8 @@ void main() async {
     }
   }
 
-  await stdout.addStream(condaProcess.stdout);
-  await stderr.addStream(condaProcess.stderr);
+  stdout.addStream(condaProcess.stdout);
+  stderr.addStream(condaProcess.stderr);
 
   final condaResult = await condaProcess.exitCode;
   if (condaResult != 0) exit(condaResult);
@@ -88,8 +88,8 @@ void main() async {
 
   final Process pyProcess = await Process.start(sdconda, ["run", ...base_args, "python", p.join(root, "scripts", "install_or_update.py")]);
 
-  await stdout.addStream(pyProcess.stdout);
-  await stderr.addStream(pyProcess.stderr);
+  stdout.addStream(pyProcess.stdout);
+  stderr.addStream(pyProcess.stderr);
 
   final pyResult = await pyProcess.exitCode;
   if (pyResult != 0) exit(pyResult);
