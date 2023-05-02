@@ -9,11 +9,21 @@ void main() async {
     root = p.dirname(root);
   }
 
+  // --------------
+  // Create (or update) the conda environment
+  // --------------
+
+  print("--------------------------------------");
+  print("Creating or updating conda environment");
+  print("--------------------------------------");
+  print("");
+
   final conda = Platform.environment["CONDA_EXE"];
 
   var sdconda = "";
   var base_args = <String>[];
-  ProcessResult? couResult;
+ 
+  Process? condaProcess;
 
   if (conda != null && File(conda).existsSync()) {
     final env = p.join(root, 'condaenv');
@@ -27,11 +37,11 @@ void main() async {
 
     if (testResult.exitCode == 0) {
       print("Environment exists. Updating.");
-      couResult = Process.runSync(sdconda, ["env", "update", ...base_args, "-f", "environment.yaml"]);
+      condaProcess = await Process.start(sdconda, ["env", "update", ...base_args, "-f", "environment.yaml"]);
     }
     else {
       print("Environment doesn't exist. Creating.");
-      couResult = Process.runSync(sdconda, ["env", "create", ...base_args, "-f", "environment.yaml"]);
+      condaProcess = await Process.start(sdconda, ["env", "create", ...base_args, "-f", "environment.yaml"]);
     }
   }
   else {
@@ -52,29 +62,42 @@ void main() async {
 
     if (testResult.exitCode == 0) {
       print("Environment exists. Updating.");
-      couResult = Process.runSync(sdconda, ["update", ...base_args, "-y", "-f", "environment.yaml"]);
+      condaProcess = await Process.start(sdconda, ["update", ...base_args, "-y", "-f", "environment.yaml"]);
     }
     else {
       print("Environment doesn't exist. Creating.");
-      couResult = Process.runSync(sdconda, ["create", ...base_args, "-y", "-f", "environment.yaml"]);
+      condaProcess = await Process.start(sdconda, ["create", ...base_args, "-y", "-f", "environment.yaml"]);
     }
   }
 
-  if (couResult.exitCode != 0) {
-    print("Error. Could not create or update python environment. Message from Conda:");
-    print(couResult.stderr);
-    throw new Error();
-  }
-  else {
-    print(couResult.stdout);
-  }
+  stdout.addStream(condaProcess.stdout);
+  stderr.addStream(condaProcess.stderr);
 
-  final Process process = await Process.start(sdconda, ["run", ...base_args, "python", p.join(root, "scripts", "install_or_update.py")]);
-  process.stdout.pipe(stdout);
-  process.stderr.pipe(stderr);
+  final condaResult = await condaProcess.exitCode;
+  if (condaResult != 0) exit(condaResult);
 
-  final result = await process.exitCode;
-  
+  // --------------
+  // Run the python script now we have an environment
+  // --------------
+
+  print("");
+  print("--------------------------------------");
+  print("Run main install script");
+  print("--------------------------------------");
+  print("");
+
+  final Process pyProcess = await Process.start(sdconda, ["run", ...base_args, "python", p.join(root, "scripts", "install_or_update.py")]);
+
+  stdout.addStream(pyProcess.stdout);
+  stderr.addStream(pyProcess.stderr);
+
+  final pyResult = await pyProcess.exitCode;
+  if (pyResult != 0) exit(pyResult);
+
+  // --------------
+  // Create the run command linking into the used conda
+  // --------------
+
   if (Platform.isLinux) {
     File(p.join(root, "run.sh")).writeAsStringSync("""
 #!/bin/bash
@@ -84,10 +107,9 @@ ${sdconda} run ${base_args.join(" ")} python ${p.join(root, 'scripts', 'run.py')
   else {
     File(p.join(root, "run.cmd")).writeAsStringSync("""
 @echo off
-start ${sdconda} run ${base_args.join(" ")} python ${p.join(root, 'scripts', 'run.py')}
+${sdconda} run ${base_args.join(" ")} python ${p.join(root, 'scripts', 'run.py')} || pause
 """);
   }
-
 
   print("Done");
 }
