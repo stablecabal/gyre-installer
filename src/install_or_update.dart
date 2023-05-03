@@ -22,6 +22,7 @@ void main() async {
 
   var sdconda = "";
   var base_args = <String>[];
+  var run_args = <String>[];
  
   Process? condaProcess;
 
@@ -32,6 +33,7 @@ void main() async {
     print("Using system Conda at $sdconda");
 
     base_args = ["-p", env];
+    run_args = ["--no-capture-output"];
 
     final testResult = Process.runSync(sdconda, ["run", ...base_args, "echo"]);
 
@@ -86,7 +88,7 @@ void main() async {
   print("--------------------------------------");
   print("");
 
-  final Process pyProcess = await Process.start(sdconda, ["run", ...base_args, "python", p.join(root, "scripts", "install_or_update.py")]);
+  final Process pyProcess = await Process.start(sdconda, ["run", ...run_args, ...base_args, "python", p.join(root, "scripts", "install_or_update.py")]);
 
   stdout.addStream(pyProcess.stdout);
   stderr.addStream(pyProcess.stderr);
@@ -101,13 +103,13 @@ void main() async {
   if (Platform.isLinux) {
     File(p.join(root, "run.sh")).writeAsStringSync("""
 #!/bin/bash
-${sdconda} run ${base_args.join(" ")} python ${p.join(root, 'scripts', 'run.py')}
+${sdconda} run ${run_args.join(" ")} ${base_args.join(" ")} python ${p.join(root, 'scripts', 'run.py')}
 """);
   }
   else {
     File(p.join(root, "run.cmd")).writeAsStringSync("""
 @echo off
-${sdconda} run ${base_args.join(" ")} python ${p.join(root, 'scripts', 'run.py')} || pause
+${sdconda} run ${run_args.join(" ")} ${base_args.join(" ")} python ${p.join(root, 'scripts', 'run.py')} || pause
 """);
   }
 
