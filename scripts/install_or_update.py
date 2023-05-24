@@ -79,11 +79,51 @@ def sha256sum(filename):
 
 def main():
     base=path.dirname(path.dirname(path.abspath(__file__)))
+    default_home=os.path.join(os.path.expanduser("~"), ".cache")
 
     # Create config if it doesn't exist
     
     if not path.exists(path.join(base, "config")):
+        override_path = None
+
+        while override_path is None:
+            print("")
+            print("Where would you like to store the models:")
+            print(f"  1: [Default] The default huggingface cache (normally {default_home})")
+            print("  2: A custom path")
+            print("")
+            user_input = input("Enter '1', '2', 'q' to abort, or press enter to use the default: ").strip()
+
+            if user_input == "q":
+                print("Aborting install. Run install_or_update.cmd again to continue later.")
+                sys.exit(-1)
+            elif user_input == "1" or user_input == "" :
+                override_path = False
+            elif user_input == "2":
+                override_path = True
+
+        while override_path is True:
+            print("")
+            override_path = input("Please enter the custom path (for example, e:/gyremodels): ")
+            override_path.strip().replace('\\', '/')
+
         shutil.copy(path.join(base, "config.dist"), path.join(base, "config"))
+
+        if override_path:
+            print("")
+            print("Models will be downloaded into ", override_path)
+            print("You can change this path later by editing your config file and manually moving any downloaded models")
+            print("", flush=True)
+
+            with open(path.join(base, "config"), "a") as config_file:
+                config_file.write(f"\nXDG_CACHE_HOME={override_path}")
+
+    # We can't rely on dotenv existing yet, stdlib only
+    
+    with open(path.join(base, "config"), "r") as config_file:
+        for line in config_file:
+            if line_match := re.match(r'\s*([^\s=]+)\s*=\s*(.+)', line):
+                os.environ[line_match.group(1)] = line_match.group(2)
 
     # Read the config
 
@@ -91,6 +131,7 @@ def main():
     branch = os.environ.get("AIO_BRANCH", "main") 
 
     # From huggingface_hub/constants.py
+
     default_home = os.path.join(os.path.expanduser("~"), ".cache")
     hf_cache_home = os.path.expanduser(
         os.getenv(
@@ -99,18 +140,8 @@ def main():
         )
     )
 
-    # We can't rely on dotenv existing yet, stdlib only
-    with open(path.join(base, "config"), "r") as config_file:
-        for line in config_file:
-            repo_match = re.match(r'\s*AIO_REPO\s*=\s*(\S+)', line)
-            branch_match = re.match(r'\s*AIO_BRANCH\s*=\s*(\S+)', line)
-            home_match = re.match(r'\s*HF_HOME\s*=\s*(\S+)', line)
-
-            if repo_match: repo=repo_match.group(1)
-            if branch_match: branch=branch_match.group(1)
-            if home_match: hf_cache_home=os.path.abspath(home_match.group(1))
-
     # Run a basic environment check before doing anything
+
     check_environment(hf_cache_home)
     if has_warning:
         print("(Continuing in 5 seconds....)", flush=True)
