@@ -2,3 +2,5 @@ SD_NSFW_BEHAVIOUR=flag
 SD_VRAM_OPTIMISATION_LEVEL=3
 SD_HTTP_PORT=5000
 SD_ENGINECFG=./gyreconfig/engines.yaml
+SD_LOCAL_RESOURCE_1=lora;./local_resources/lora
+SD_LOCAL_RESOURCE_2=embedding;./local_resources/embeddings
