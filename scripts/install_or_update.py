@@ -77,20 +77,121 @@ def sha256sum(filename):
             h.update(mv[:n])
     return h.hexdigest()
 
+# We can't rely on dotenv existing yet, stdlib only
+def parse_dotenv(filename, rv = None):
+    if rv is None:
+        rv = {}
+
+    with open(filename, "r") as config_file:
+        for line in config_file:
+            if line_match := re.match(r'\s*([^\s=]+)\s*=\s*(.+)', line):
+                rv[line_match.group(1)] = line_match.group(2)
+    
+    return rv
+
+def create_initial_config():
+    base=path.dirname(path.dirname(path.abspath(__file__)))
+    default_home=os.path.join(os.path.expanduser("~"), ".cache")
+    config = parse_dotenv(path.join(base, "config.dist"))
+
+    override_path = None
+    override_branch = None
+
+    # -- Ask client if they want to override the path
+
+    while override_path is None:
+        print("")
+        print("Where would you like to store downloaded models:")
+        print(f"  1: [Default] The default huggingface cache (normally {default_home})")
+        print("  2: A custom path")
+        print("")
+        user_input = input("Enter '1', '2', 'q' to abort, or press enter to use the default: ").strip()
+
+        if user_input == "q":
+            print("Aborting install. Run install_or_update.cmd again to continue later.")
+            sys.exit(-1)
+        elif user_input == "1" or user_input == "" :
+            override_path = False
+        elif user_input == "2":
+            override_path = True
+
+    while override_path is True:
+        print("")
+        override_path = input("Please enter the custom path (for example, e:/gyremodels): ")
+        override_path.strip().replace('\\', '/')
+
+    if override_path:
+        print("")
+        print("Models will be downloaded into ", override_path)
+        print("You can change this path later by editing your config file and manually moving any downloaded models")
+        print("", flush=True)
+
+        config["XDG_CACHE_HOME"] = override_path
+
+    # -- Ask client if they want to override the branch
+
+    branch_default = config.get("AIO_BRANCH", "main")
+
+    while override_branch is None:
+        print("")
+        print("What branch would you like to install?:")
+        print("")
+        print("  Stable versions:")
+        print("  ---------------------")
+        print(f"    1: {'[Default] ' if branch_default == 'main' else ''}The gyre server")
+        print(f"    2: {'[Default] ' if branch_default == 'bundle' else ''}The gyre + flying dog AI studio bundle")
+        print("")
+        print("  Test versions (newer features, but more bugs):")
+        print("  ---------------------")
+        print("    3: The gyre server")
+        print("    4: The gyre + flying dog AI studio bundle")
+        print("")
+        user_input = input("Enter '1', '2', '3', '4', 'q' to abort, or press enter to use the default: ").strip()
+
+        if user_input == "q":
+            print("Aborting install. Run install_or_update.cmd again to continue later.")
+            sys.exit(-1)
+        elif user_input == "":
+            override_branch = branch_default
+        elif user_input == "1":
+            override_branch = "main"
+        elif user_input == "2":
+            override_branch = "bundle"
+        elif user_input == "3":
+            override_branch = "test"
+        elif user_input == "4":
+            override_branch = "bundle-test"
+
+    config["AIO_BRANCH"] = override_branch
+
+    if "bundle" in override_branch:
+        config["SD_HTTP_FILE_ROOT"]="./aistudio/dist"
+        config["SD_HTTP_PROXY_1"]="flyingdog:www.flyingdog.de"
+
+    with open(path.join(base, "config"), "w") as config_file:
+        for k, v in config.items():
+            config_file.write(f"{k}={v}\n")
+
 def main():
     base=path.dirname(path.dirname(path.abspath(__file__)))
+    default_home=os.path.join(os.path.expanduser("~"), ".cache")
 
     # Create config if it doesn't exist
     
     if not path.exists(path.join(base, "config")):
-        shutil.copy(path.join(base, "config.dist"), path.join(base, "config"))
+        create_initial_config()
 
-    # Read the config
+    # Read it in
+
+    parse_dotenv(path.join(base, "config"), os.environ)
+
+    # Get some variables from the config
 
     repo = os.environ.get("AIO_REPO", "https://github.com/stablecabal/gyre-installer.git")
     branch = os.environ.get("AIO_BRANCH", "main") 
 
     # From huggingface_hub/constants.py
+
     default_home = os.path.join(os.path.expanduser("~"), ".cache")
     hf_cache_home = os.path.expanduser(
         os.getenv(
@@ -99,18 +200,8 @@ def main():
         )
     )
 
-    # We can't rely on dotenv existing yet, stdlib only
-    with open(path.join(base, "config"), "r") as config_file:
-        for line in config_file:
-            repo_match = re.match(r'\s*AIO_REPO\s*=\s*(\S+)', line)
-            branch_match = re.match(r'\s*AIO_BRANCH\s*=\s*(\S+)', line)
-            home_match = re.match(r'\s*HF_HOME\s*=\s*(\S+)', line)
-
-            if repo_match: repo=repo_match.group(1)
-            if branch_match: branch=branch_match.group(1)
-            if home_match: hf_cache_home=os.path.abspath(home_match.group(1))
-
     # Run a basic environment check before doing anything
+
     check_environment(hf_cache_home)
     if has_warning:
         print("(Continuing in 5 seconds....)", flush=True)
