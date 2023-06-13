@@ -8,3 +8,4 @@ dependencies:
   - pip
   - flit
   - psutil
+  - openssl=1.1.1
